@@ -5,8 +5,12 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const flash = require('connect-flash');
+const passport = require('passport');
 
 const routes = require('./routes');
+const setupPassport = require('./setup-passport');
+
+setupPassport();
 
 const app = express();
 
@@ -25,6 +29,10 @@ app.use(session({
   saveUninitialized: true
 }));
 app.use(flash());
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 app.use(routes);
 

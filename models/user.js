@@ -1,20 +1,27 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt-nodejs");
+const moment = require("moment");
 const SALT_FACTOR = 10;
 
 const userSchema = mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  passowrd: { type: String, required: true },
+  password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   displayName: String,
   bio: String
 });
 
-userSchema.methods.name = () => this.displayName || this.username;
+userSchema.methods.name = function() {
+  return this.displayName || this.username;
+};
+
+userSchema.methods.createAtStr = function() {
+  return moment(this.createdAt).format("MMMM Do YYYY");
+};
 
 const noop = () => {};
 
-userSchema.pre("save", done => {
+userSchema.pre("save", function(done) {
   const user = this;
   if (!user.isModified("password")) {
     return done();
@@ -23,21 +30,21 @@ userSchema.pre("save", done => {
     if (err) {
       return done(err);
     }
-    bcrypt.hash(user.passowrd, salt, noop, (err, hashedPassword) => {
+    bcrypt.hash(user.password, salt, noop, (err, hashedPassword) => {
       if (err) {
         return done(err);
       }
-      user.passowrd = hashedPassword;
+      user.password = hashedPassword;
       done();
     });
   });
 });
 
-userSchema.methods.checkPassword = (guess, done) => {
+userSchema.methods.checkPassword = function(guess, done) {
   bcrypt.compare(guess, this.password, (err, isMatch) => {
     done(err, isMatch);
   });
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 module.exports = User;
